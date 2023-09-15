@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Counter</title>
+    <style>
+        fieldset {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 300px;
+            display: inline-block;
+        }
+
+        legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"], input[type="text"] {
+            padding: 5px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3E8E41;
+        }
+
+        .output {
+            display: block;
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<fieldset>
+    <legend>Counter</legend>
+    <label for="startNum">Starting Number:</label>
+    <input type="number" id="startNum" name="startNum">
+    <label for="endNum">End Number:</label>
+    <input type="number" id="endNum" name="endNum">
+    <button onclick="countRange()">Count</button>
+</fieldset>
+
+<p id="countRangeOutput" class="output"></p>
+
+<fieldset>
+    <legend>Remark</legend>
+    <label for="customText">Enter Serial No.:</label>
+    <input type="text" id="customText" name="customText">
+    <label for="customNum">Enter Night:</label>
+    <input type="number" id="customNum" name="customNum">
+    <button onclick="generateCustomOutput()">Generate</button>
+</fieldset>
+
+<p id="customOutput" class="output"></p>
+
+<script>
+    function countRange() {
+        var startNum = parseInt(document.getElementById("startNum").value);
+        var endNum = parseInt(document.getElementById("endNum").value);
+        var countDisplay = document.getElementById("countRangeOutput");
+
+        // Check if both input fields are filled
+        if (isNaN(startNum) || isNaN(endNum)) {
+            countDisplay.innerHTML = "Please enter valid numbers in both fields.";
+        } else {
+            var numbers = [];
+            for (var i = startNum; i <= endNum; i++) {
+                numbers.push(i);
+            }
+            countDisplay.innerHTML = numbers.join(", ");
+        }
+    }
+
+    function generateCustomOutput() {
+        var customText = document.getElementById("customText").value;
+        var customNum = parseInt(document.getElementById("customNum").value);
+        var countDisplay = document.getElementById("customOutput");
+
+        // Check if the customNum input field is filled
+        if (isNaN(customNum)) {
+            countDisplay.innerHTML = "Please enter a valid number.";
+        } else {
+            var nightsText = customNum === 1 ? "NIGHT" : "NIGHTS";
+            countDisplay.innerHTML = "W/TAX X " + customNum + " " + nightsText + " - " + customText;
+        }
+    }
+</script>
+</body>
+</html>
