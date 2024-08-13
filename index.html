@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Counter</title>
+    <title>TVL Wtax Counter</title>
     <style>
         fieldset {
             border: 1px solid #ccc;
@@ -22,7 +22,7 @@
             margin-bottom: 5px;
         }
 
-        input[type="number"], input[type="text"] {
+        input[type="number"], input[type="text"], textarea {
             padding: 5px;
             font-size: 1em;
             border: 1px solid #ccc;
@@ -40,6 +40,7 @@
             border-radius: 3px;
             font-size: 1em;
             cursor: pointer;
+            margin-right: 10px;
         }
 
         button:hover {
@@ -50,16 +51,46 @@
             display: block;
             margin-top: 20px;
             font-size: 1.2em;
-            font-weight: bold;
+        }
+
+        .remark {
+            margin-top: 10px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .remark-button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+
+        .alert {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border-radius: 3px;
+            font-size: 1em;
+            display: none;
+        }
+
+        .alert.fade-out {
+            opacity: 0;
+            transition: opacity 1s ease-out;
         }
     </style>
 </head>
 <body>
 <fieldset>
-    <legend>Counter</legend>
+    <legend>Serial Number</legend>
     <label for="startNum">Starting Number:</label>
     <input type="number" id="startNum" name="startNum">
-    <label for="endNum">End Number:</label>
+    <label for="endNum">Ending Number:</label>
     <input type="number" id="endNum" name="endNum">
     <button onclick="countRange()">Count</button>
 </fieldset>
@@ -68,45 +99,94 @@
 
 <fieldset>
     <legend>Remark</legend>
-    <label for="customText">Enter Serial No.:</label>
-    <input type="text" id="customText" name="customText">
-    <label for="customNum">Enter Night:</label>
-    <input type="number" id="customNum" name="customNum">
+    <label for="receiptNumbers">Paste Receipt Numbers (comma-separated):</label>
+    <textarea id="receiptNumbers" name="receiptNumbers" rows="4" placeholder="Paste receipt numbers here..."></textarea>
     <button onclick="generateCustomOutput()">Generate</button>
+    <button onclick="clearTextarea()">Clear</button>
 </fieldset>
 
-<p id="customOutput" class="output"></p>
+<div id="customOutput" class="output"></div>
+
+<div id="alertMessage" class="alert"></div>
 
 <script>
     function countRange() {
-        var startNum = parseInt(document.getElementById("startNum").value);
-        var endNum = parseInt(document.getElementById("endNum").value);
+        var startNum = parseInt(document.getElementById("startNum").value, 10);
+        var endNum = parseInt(document.getElementById("endNum").value, 10);
         var countDisplay = document.getElementById("countRangeOutput");
 
-        // Check if both input fields are filled
         if (isNaN(startNum) || isNaN(endNum)) {
             countDisplay.innerHTML = "Please enter valid numbers in both fields.";
+            countDisplay.className = "output error";
+        } else if (startNum > endNum) {
+            countDisplay.innerHTML = "Starting number must be less than or equal to ending number.";
+            countDisplay.className = "output error";
         } else {
             var numbers = [];
             for (var i = startNum; i <= endNum; i++) {
                 numbers.push(i);
             }
             countDisplay.innerHTML = numbers.join(", ");
+            countDisplay.className = "output";
         }
     }
 
     function generateCustomOutput() {
-        var customText = document.getElementById("customText").value;
-        var customNum = parseInt(document.getElementById("customNum").value);
+        var receiptNumbersText = document.getElementById("receiptNumbers").value.trim();
+        var receiptNumbers = receiptNumbersText.split(',').map(num => num.trim()).filter(num => num.length > 0);
         var countDisplay = document.getElementById("customOutput");
 
-        // Check if the customNum input field is filled
-        if (isNaN(customNum)) {
-            countDisplay.innerHTML = "Please enter a valid number.";
-        } else {
-            var nightsText = customNum === 1 ? "NIGHT" : "NIGHTS";
-            countDisplay.innerHTML = "W/TAX X " + customNum + " " + nightsText + " - " + customText;
+        if (receiptNumbers.length === 0) {
+            countDisplay.innerHTML = "Please paste receipt numbers.";
+            countDisplay.className = "output error";
+            return;
         }
+
+        var nights = receiptNumbers.length;
+        var nightsText = nights === 1 ? "NIGHT" : "NIGHTS";
+        var receiptNumbersStr = receiptNumbers.join(", ");
+
+        var remark1 = "W/TAX X " + nights + " " + nightsText + " - " + receiptNumbersStr;
+        var remark2 = "PAYMENT FOR W/TAX BY CASH - " + receiptNumbersStr;
+
+        countDisplay.innerHTML = `
+            <div class="remark">
+                ${remark1}
+                <button class="remark-button" onclick="copyToClipboard('${remark1}', 'Copied Remark For Extra Charges')">Copy</button>
+            </div>
+            <div class="remark">
+                ${remark2}
+                <button class="remark-button" onclick="copyToClipboard('${remark2}', 'Copied Remark For Payment')">Copy</button>
+            </div>
+        `;
+        countDisplay.className = "output";
+    }
+
+    function copyToClipboard(text, alertMessage) {
+        var tempTextArea = document.createElement("textarea");
+        tempTextArea.value = text;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempTextArea);
+
+        showAlert(alertMessage);
+    }
+
+    function showAlert(message) {
+        var alertElement = document.getElementById("alertMessage");
+        alertElement.textContent = message;
+        alertElement.style.display = 'block';
+        alertElement.classList.remove('fade-out');
+        
+        // Automatically fade out the alert after 2 seconds
+        setTimeout(function() {
+            alertElement.classList.add('fade-out');
+        }, 2000);
+    }
+
+    function clearTextarea() {
+        document.getElementById("receiptNumbers").value = '';
     }
 </script>
 </body>
