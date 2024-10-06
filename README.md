@@ -11,7 +11,7 @@ Usage :
 1) Navigate to Report View > Front Office > Guest Checked In. _Report A_
 2) Range your dates (Arrival From - To) then sort by Folio number and export to Excel (Data Only)
 3) Navigate to Report View > Night Audit > Extra/Other Charges Report. _Report B_
-4) Range your dates (Charge From - To), tick Charge Name, In this case, Tourism Tax then sort by Folio number and export to Excel (Data Only)
+4) Range your dates (Charge From - To), Select Charge Name, In this case, Tourism Tax then sort by Folio number and export to Excel (Data Only)
 5) Run and upload both files to [local-guest-filter.html](https://github.com/CentCake/THE-VILLA-TOOLS/blob/main/local-guest-filter.html).
 6) Report C will generate list of local guest (or the guest that is not charged wth Tourism Tax)
 
