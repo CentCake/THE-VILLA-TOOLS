@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Guest Report Filter</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+</head>
+<body>
+    <h1>Upload Reports</h1>
+    <form id="upload-form">
+        <label for="reportA">Upload Guest Checked In Report :</label>
+        <input type="file" id="reportA" accept=".xls,.xlsx" required><br><br>
+        <label for="reportB">Upload Extra Charges Report :</label>
+        <input type="file" id="reportB" accept=".xls,.xlsx" required><br><br>
+        <button type="submit">Upload and Compare</button>
+    </form>
+
+    <div id="result" style="display:none;">
+        <h2>Generating Report C...</h2>
+        <button id="downloadReport" style="display:none;">Download Report C</button>
+    </div>
+
+    <script>
+        let reportAData = [];
+        let reportBData = [];
+
+        document.getElementById('upload-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const reportAFile = document.getElementById('reportA').files[0];
+            const reportBFile = document.getElementById('reportB').files[0];
+
+            reportAData = await readExcel(reportAFile);
+            reportBData = await readExcel(reportBFile);
+
+            // Ensure the filtering values are valid
+            const filterValues = reportBData.map(row => row[0]).filter(Boolean); // Only include truthy values
+            console.log('Filter Values:', filterValues); // Debugging line to check filter values
+
+            const reportCData = filterReports(reportAData, filterValues);
+            generateExcel(reportCData);
+        });
+
+        function readExcel(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+                    const filteredData = jsonData.slice(1); // Skip the header row
+                    resolve(filteredData);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function filterReports(reportA, filterValues) {
+            const filterSet = new Set(filterValues);
+            console.log('Report A Data:', reportA); // Debugging line to check report A data
+
+            return reportA.filter(item => !filterSet.has(item[0])) // Filter out based on the Folio No. (first column)
+                          .map(item => {
+                              if (item.length < 14) {
+                                  console.warn('Skipping row due to insufficient columns:', item);
+                                  return null; // Return null for rows that don't meet the requirement
+                              }
+
+                              return [
+                                  item[0],  // Folio No.
+                                  item[2],  // Room Type
+                                  item[5],  // Guest Name
+                                  item[9],  // Source
+                                  item[10] ? item[10].split(' ')[0] : '', // Check-in Date
+                                  item[12] ? item[12].split(' ')[0] : '', // Check-out Date
+                                  item[13]  // Nights
+                              ];
+                          })
+                          .filter(item => item !== null); // Remove null entries
+        }
+
+        function generateExcel(data) {
+            const headers = [
+                "Folio No.", 
+                "Room Type", 
+                "Guest Name", 
+                "Source", 
+                "Check-in", 
+                "Check-out", 
+                "Nights"
+            ];
+
+            const outputData = [headers, ...data];
+
+            const ws = XLSX.utils.aoa_to_sheet(outputData);
+            ws['!cols'] = [
+                { wch: 10 },  // Folio No. width
+                { wch: 15 },  // Room Type width
+                { wch: 43.25 }, // Guest Name width
+                { wch: 29 },  // Source width
+                { wch: 15 },  // Check-in width
+                { wch: 15 },  // Check-out width
+                { wch: 10 }   // Nights width
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Report C');
+            const reportCFileName = 'Report_C.xlsx';
+            XLSX.writeFile(wb, reportCFileName);
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('downloadReport').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
